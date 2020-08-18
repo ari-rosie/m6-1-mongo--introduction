@@ -58,8 +58,6 @@ const getGreetingArray = async (req, res) => {
 
     const greetings = await db.collection("greetings").find().toArray();
     if (greetings) {
-      console.log(greetings.length);
-
       let start = 0;
       let end = start + 25;
       if (req.query.start && req.query.start <= greetings.length)
@@ -76,4 +74,24 @@ const getGreetingArray = async (req, res) => {
   }
 };
 
-module.exports = { createGreeting, getGreeting, getGreetingArray };
+const deleteGreeting = async (req, res) => {
+  const _id = req.params._id;
+  try {
+    const client = await MongoClient(MONGO_URI, options);
+    await client.connect();
+    const db = client.db("exercice_1");
+
+    const d = await db.collection("greetings").deleteOne({ _id: _id });
+    res.status(200).json(d.deletedCount);
+  } catch (error) {
+    res.status(500).json({ status: 500, message: error.message });
+    console.log(error.stack);
+  }
+};
+
+module.exports = {
+  createGreeting,
+  getGreeting,
+  getGreetingArray,
+  deleteGreeting,
+};

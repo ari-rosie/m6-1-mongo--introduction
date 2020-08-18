@@ -82,11 +82,37 @@ const deleteGreeting = async (req, res) => {
     const db = client.db("exercice_1");
 
     const d = await db.collection("greetings").deleteOne({ _id: _id });
-    res.status(200).json(d.deletedCount);
+    res.status(204).json(d.deletedCount);
   } catch (error) {
     res.status(500).json({ status: 500, message: error.message });
     console.log(error.stack);
   }
+  client.close();
+};
+
+const updateGreeting = async (req, res) => {
+  const _id = req.params._id;
+  const hello = req.body.hello;
+  if (hello) {
+    try {
+      const client = await MongoClient(MONGO_URI, options);
+      await client.connect();
+      const db = client.db("exercice_1");
+
+      const newGreet = await db
+        .collection("greetings")
+        .updateOne({ _id: _id }, { $set: { hello } });
+      assert.equal(1, newGreet.matchedCount);
+      assert.equal(1, newGreet.modifiedCount);
+      newGreet
+        ? res.status(200).json({ status: 200, data: newGreet })
+        : res.status(404).json("not found");
+      client.close();
+    } catch (error) {
+      res.status(500).json({ status: 500, message: error.message });
+      console.log(error.stack);
+    }
+  } else res.status(404).json("wrong key");
 };
 
 module.exports = {
@@ -94,4 +120,5 @@ module.exports = {
   getGreeting,
   getGreetingArray,
   deleteGreeting,
+  updateGreeting,
 };
